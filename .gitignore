@@ -18,3 +18,8 @@ embed-proplet/zephyr
 # ML-WASM example generated files
 examples/ml-wasm/mymodel.pkl
 examples/ml-wasm/mymodel.wasm
+
+# Ignore env backups
+*.env.bak
+*.bak
+.env.*.bak
