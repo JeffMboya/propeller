@@ -34,9 +34,10 @@ For automated testing, use the [Complete Test Script](#complete-test-script) at 
 - **Instance IDs**: `"proplet-1"`, `"proplet-2"`, `"proplet-3"` - These are just labels for identification
 - **CLIENT_IDs**: `"3fe95a65-74f1-4ede-bf20-ef565f04cecb"` - These are the actual SuperMQ client credentials that proplets use to register with the manager
 
-Proplets register themselves using their CLIENT_ID (from `PROPLET_CLIENT_ID`, `PROPLET_2_CLIENT_ID`, `PROPLET_3_CLIENT_ID` in your `docker/.env` file). The manager tracks proplets by these CLIENT_IDs, so the `participants` array in ConfigureExperiment must use CLIENT_IDs, not instance IDs.
+Proplets register themselves using their CLIENT_ID (from `PROPLET_CLIENT_ID`, `PROPLET_2_CLIENT_ID`, `PROPLET_3_CLIENT_ID` in your `docker/.env` file). The manager tracks proplets by these CLIENT_IDs.
 
-Your `docker/.env` file should contain:
+For example, your `docker/.env` file should contain:
+
 ```bash
 PROPLET_CLIENT_ID=3fe95a65-74f1-4ede-bf20-ef565f04cecb      # For proplet-1
 PROPLET_2_CLIENT_ID=1f074cd1-4e22-4e21-92ca-e35a21d3ce29    # For proplet-2
@@ -231,21 +232,24 @@ The script will:
 - Create clients: manager, proplet-1, proplet-2, proplet-3, fl-coordinator
 - Create a channel named "fl"
 - Display the client IDs and keys
-- Automatically update `compose.yaml` with the new client credentials, domain ID, and channel ID (backup created as `compose.yaml.bak`)
+- Automatically update `docker/.env` with the new client credentials, domain ID, and channel ID (backup created as `docker/.env.bak`)
 
 **Note**: If the domain already exists (route conflict), the script will use the existing domain.
 
-If you need to manually update the compose file, edit:
+The script updates the following environment variables in `docker/.env`:
 - `MANAGER_CLIENT_ID` and `MANAGER_CLIENT_KEY`
-- `PROPLET_CLIENT_ID` and `PROPLET_CLIENT_KEY` (for each proplet)
-- `MANAGER_DOMAIN_ID` and `PROPLET_DOMAIN_ID`
-- `MANAGER_CHANNEL_ID` and `PROPLET_CHANNEL_ID`
+- `PROPLET_CLIENT_ID` and `PROPLET_CLIENT_KEY` (for proplet-1)
+- `PROPLET_2_CLIENT_ID` and `PROPLET_2_CLIENT_KEY` (for proplet-2)
+- `PROPLET_3_CLIENT_ID` and `PROPLET_3_CLIENT_KEY` (for proplet-3)
+- `COORDINATOR_CLIENT_ID` and `COORDINATOR_CLIENT_KEY`
+- `MANAGER_DOMAIN_ID`, `PROPLET_DOMAIN_ID`, and `PROXY_DOMAIN_ID`
+- `MANAGER_CHANNEL_ID`, `PROPLET_CHANNEL_ID`, and `PROXY_CHANNEL_ID`
 
-Or set them as environment variables in your `docker/.env` file.
+If the script cannot update the file automatically, you can manually add or update these variables in `docker/.env`.
 
 ## Step 5: Restart Services After Provisioning
 
-**IMPORTANT**: After provisioning (or if you change credentials), you must restart the manager, coordinator, and proplets to pick up the new credentials. The provisioning script updates `compose.yaml` with the new client IDs, keys, and channel ID.
+**IMPORTANT**: After provisioning (or if you change credentials), you must restart the manager, coordinator, and proplets to pick up the new credentials. The provisioning script updates `docker/.env` with the new client IDs, keys, domain ID, and channel ID.
 
 **Repeat when**: After provisioning or credential changes.
 
@@ -294,7 +298,7 @@ docker compose -f docker/compose.yaml -f examples/fl-demo/compose.yaml --env-fil
 > - Manager not connecting to MQTT: Verify credentials match provisioning output
 > - Port 7070 not accessible: Ensure manager container is running and port is exposed
 > - Coordinator connection refused: Ensure coordinator-http service is running
-> - Proplet using old channel ID: Restart proplet containers to pick up new channel ID from compose.yaml
+> - Proplet using old channel ID: Restart proplet containers to pick up new channel ID from docker/.env
 
 ## Step 6: Initialize Model Registry
 
@@ -380,7 +384,7 @@ curl -X POST http://localhost:7070/fl/experiments \
 Publish a round start message to the MQTT topic. **MQTT connections require authentication** using client credentials:
 
 ```bash
-# Get client credentials from compose.yaml or provisioning output
+# Get client credentials from docker/.env or provisioning output
 # Use the manager client ID and key, or fl-coordinator client credentials
 mosquitto_pub -h localhost -p 1883 \
   -u "<CLIENT_ID>" \
@@ -400,7 +404,7 @@ mosquitto_pub -h localhost -p 1883 \
 > **Note**:
 > - MQTT connections go through nginx. The port is configured via `SMQ_NGINX_MQTT_PORT` in your `docker/.env` file (default: 1883).
 > - Use `-u` for client ID (username) and `-P` for client key (password).
-> - Get the current client ID and key from `compose.yaml` (MANAGER_CLIENT_ID and MANAGER_CLIENT_KEY) or from the provisioning script output.
+> - Get the current client ID and key from `docker/.env` (MANAGER_CLIENT_ID and MANAGER_CLIENT_KEY) or from the provisioning script output.
 > - **IMPORTANT**: The `participants` array must use SuperMQ CLIENT_IDs (UUIDs), not instance IDs.
 
 ### Option C: Using Python Test Script
@@ -736,8 +740,8 @@ The script:
 ### Manager Not Connecting to MQTT
 
 1. **Verify provisioning completed**: Check that the provisioning script ran successfully
-2. **Check credentials**: Ensure client IDs and keys in `compose.yaml` match the provisioning output
-3. **Verify channel ID**: Ensure `MANAGER_CHANNEL_ID` and `PROPLET_CHANNEL_ID` match the new channel ID from provisioning
+2. **Check credentials**: Ensure client IDs and keys in `docker/.env` match the provisioning output
+3. **Verify channel ID**: Ensure `MANAGER_CHANNEL_ID` and `PROPLET_CHANNEL_ID` in `docker/.env` match the new channel ID from provisioning
 4. **Restart services**: Restart manager and proplets after provisioning:
    ```bash
    docker compose -f docker/compose.yaml -f examples/fl-demo/compose.yaml --env-file docker/.env restart manager proplet proplet-2 proplet-3
@@ -768,7 +772,7 @@ If you see `"connection refused"` when manager tries to connect to coordinator:
    ```bash
    docker compose -f docker/compose.yaml -f examples/fl-demo/compose.yaml --env-file docker/.env logs coordinator-http --tail 50
    ```
-4. **Verify coordinator MQTT credentials**: Ensure `COORDINATOR_CLIENT_ID` and `COORDINATOR_CLIENT_KEY` are set in `compose.yaml` (updated by provisioning script)
+4. **Verify coordinator MQTT credentials**: Ensure `COORDINATOR_CLIENT_ID` and `COORDINATOR_CLIENT_KEY` are set in `docker/.env` (updated by provisioning script)
 5. **Restart coordinator if needed**:
    ```bash
    docker compose -f docker/compose.yaml -f examples/fl-demo/compose.yaml --env-file docker/.env restart coordinator-http
@@ -782,7 +786,7 @@ If you see `"connection refused"` when manager tries to connect to coordinator:
 
 If proplet logs show the old channel ID in MQTT topics instead of the new one:
 
-1. **Verify compose.yaml has new channel ID**: Check that `PROPLET_CHANNEL_ID` matches provisioning output
+1. **Verify docker/.env has new channel ID**: Check that `PROPLET_CHANNEL_ID` in `docker/.env` matches provisioning output
 2. **Restart all proplet instances** to pick up new channel ID:
    ```bash
    docker compose -f docker/compose.yaml -f examples/fl-demo/compose.yaml --env-file docker/.env restart proplet proplet-2 proplet-3

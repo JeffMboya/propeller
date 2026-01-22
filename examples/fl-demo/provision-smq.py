@@ -303,16 +303,18 @@ def connect_clients_to_channel(token, domain_id, client_ids, channel_id):
         return False
 
 
-def update_compose_file(compose_file, clients, domain_id, channel_id):
-    """Update compose.yaml with new client credentials."""
-    if not compose_file.exists():
-        print(f"Warning: Compose file not found: {compose_file}")
-        return False
+def update_env_file(env_file, clients, domain_id, channel_id):
+    """Update docker/.env file with new client credentials."""
+    if not env_file.exists():
+        print(f"Warning: .env file not found: {env_file}")
+        print(f"  Creating new .env file...")
+        # Create empty file if it doesn't exist
+        env_file.touch()
     
-    content = compose_file.read_text()
+    content = env_file.read_text()
     original_content = content
     
-    # Map client names to their corresponding environment variable prefixes
+    # Map client names to their corresponding environment variable names
     client_mapping = {
         'manager': {
             'id_var': 'MANAGER_CLIENT_ID',
@@ -320,18 +322,15 @@ def update_compose_file(compose_file, clients, domain_id, channel_id):
         },
         'proplet-1': {
             'id_var': 'PROPLET_CLIENT_ID',
-            'key_var': 'PROPLET_CLIENT_KEY',
-            'section': 'proplet'  # The first proplet is just 'proplet' in compose file
+            'key_var': 'PROPLET_CLIENT_KEY'
         },
         'proplet-2': {
-            'id_var': 'PROPLET_CLIENT_ID',
-            'key_var': 'PROPLET_CLIENT_KEY',
-            'section': 'proplet-2'
+            'id_var': 'PROPLET_2_CLIENT_ID',
+            'key_var': 'PROPLET_2_CLIENT_KEY'
         },
         'proplet-3': {
-            'id_var': 'PROPLET_CLIENT_ID',
-            'key_var': 'PROPLET_CLIENT_KEY',
-            'section': 'proplet-3'
+            'id_var': 'PROPLET_3_CLIENT_ID',
+            'key_var': 'PROPLET_3_CLIENT_KEY'
         },
         'fl-coordinator': {
             'id_var': 'COORDINATOR_CLIENT_ID',
@@ -339,33 +338,48 @@ def update_compose_file(compose_file, clients, domain_id, channel_id):
         }
     }
     
-    # Update domain ID if needed
-    # Pattern matches: MANAGER_DOMAIN_ID: ${MANAGER_DOMAIN_ID:-old-domain-id}
-    domain_pattern = r'(MANAGER_DOMAIN_ID:\s*\$\{MANAGER_DOMAIN_ID:-)([a-f0-9-]+)(\})'
-    def replace_domain(match):
-        return f"{match.group(1)}{domain_id}{match.group(3)}"
-    content = re.sub(domain_pattern, replace_domain, content)
+    # Function to update or add an environment variable
+    def update_env_var(var_name, var_value):
+        nonlocal content
+        # Pattern to match: VAR_NAME=value or VAR_NAME="value" or VAR_NAME='value' or VAR_NAME= (empty)
+        # Also matches commented lines: # VAR_NAME=value
+        # Match from start of line, optional whitespace, optional comment, var name, =, and rest of line
+        pattern = rf'^(\s*)(#?\s*)({re.escape(var_name)}\s*=\s*)([^\n]*)'
+        
+        lines = content.split('\n')
+        found = False
+        new_lines = []
+        
+        for line in lines:
+            match = re.match(pattern, line)
+            if match:
+                found = True
+                # If line was commented, uncomment it
+                if match.group(2).strip().startswith('#'):
+                    new_lines.append(f"{var_name}={var_value}")
+                else:
+                    # Keep original indentation and update value
+                    new_lines.append(f"{match.group(1)}{match.group(3)}{var_value}")
+            else:
+                new_lines.append(line)
+        
+        if not found:
+            # Variable doesn't exist, add it at the end
+            if new_lines and new_lines[-1]:
+                new_lines.append("")
+            new_lines.append(f"{var_name}={var_value}")
+        
+        content = '\n'.join(new_lines)
     
-    # Update all PROPLET_DOMAIN_ID occurrences
-    # Pattern matches: PROPLET_DOMAIN_ID: ${PROPLET_DOMAIN_ID:-old-domain-id}
-    proplet_domain_pattern = r'(PROPLET_DOMAIN_ID:\s*\$\{PROPLET_DOMAIN_ID:-)([a-f0-9-]+)(\})'
-    def replace_proplet_domain(match):
-        return f"{match.group(1)}{domain_id}{match.group(3)}"
-    content = re.sub(proplet_domain_pattern, replace_proplet_domain, content)
+    # Update domain IDs
+    update_env_var('MANAGER_DOMAIN_ID', domain_id)
+    update_env_var('PROPLET_DOMAIN_ID', domain_id)
+    update_env_var('PROXY_DOMAIN_ID', domain_id)
     
-    # Update channel ID if needed
-    # Pattern matches: MANAGER_CHANNEL_ID: ${MANAGER_CHANNEL_ID:-old-channel-id}
-    channel_pattern = r'(MANAGER_CHANNEL_ID:\s*\$\{MANAGER_CHANNEL_ID:-)([a-f0-9-]+)(\})'
-    def replace_channel(match):
-        return f"{match.group(1)}{channel_id}{match.group(3)}"
-    content = re.sub(channel_pattern, replace_channel, content)
-    
-    # Update all PROPLET_CHANNEL_ID occurrences
-    # Pattern matches: PROPLET_CHANNEL_ID: ${PROPLET_CHANNEL_ID:-old-channel-id}
-    proplet_channel_pattern = r'(PROPLET_CHANNEL_ID:\s*\$\{PROPLET_CHANNEL_ID:-)([a-f0-9-]+)(\})'
-    def replace_proplet_channel(match):
-        return f"{match.group(1)}{channel_id}{match.group(3)}"
-    content = re.sub(proplet_channel_pattern, replace_proplet_channel, content)
+    # Update channel IDs
+    update_env_var('MANAGER_CHANNEL_ID', channel_id)
+    update_env_var('PROPLET_CHANNEL_ID', channel_id)
+    update_env_var('PROXY_CHANNEL_ID', channel_id)
     
     # Update client credentials
     for client_name, client in clients.items():
@@ -382,55 +396,19 @@ def update_compose_file(compose_file, clients, domain_id, channel_id):
         if not client_id or client_key == "N/A":
             continue
         
-        # Pattern to match the environment variable lines
-        # Match: MANAGER_CLIENT_ID: ${MANAGER_CLIENT_ID:-old-value}
-        id_pattern = rf'({id_var}:\s*\$\{{{id_var}:-)([a-f0-9-]+)(\}})'
-        key_pattern = rf'({key_var}:\s*\$\{{{key_var}:-)([a-f0-9-]+)(\}})'
-        
-        # Replace ID using a function to avoid regex group reference issues
-        def replace_id(match):
-            return f"{match.group(1)}{client_id}{match.group(3)}"
-        
-        # Replace Key using a function to avoid regex group reference issues
-        def replace_key(match):
-            return f"{match.group(1)}{client_key}{match.group(3)}"
-        
-        content = re.sub(id_pattern, replace_id, content)
-        content = re.sub(key_pattern, replace_key, content)
-    
-    # Update coordinator credentials if fl-coordinator client exists
-    if 'fl-coordinator' in clients:
-        coordinator_client = clients['fl-coordinator']
-        coordinator_id = coordinator_client.get("id")
-        coordinator_key = coordinator_client.get("credentials", {}).get("secret", "N/A")
-        
-        if coordinator_id and coordinator_key != "N/A":
-            # Update COORDINATOR_CLIENT_ID in MQTT_CLIENT_ID and MQTT_USERNAME
-            # Pattern matches: MQTT_CLIENT_ID: ${COORDINATOR_CLIENT_ID:-fl-coordinator}
-            coordinator_id_pattern = r'(MQTT_CLIENT_ID:\s*\$\{COORDINATOR_CLIENT_ID:-)([^}]+)(\})'
-            coordinator_username_pattern = r'(MQTT_USERNAME:\s*\$\{COORDINATOR_CLIENT_ID:-)([^}]+)(\})'
-            coordinator_key_pattern = r'(MQTT_PASSWORD:\s*\$\{COORDINATOR_CLIENT_KEY:-)([^}]*)(\})'
-            
-            def replace_coordinator_id(match):
-                return f"{match.group(1)}{coordinator_id}{match.group(3)}"
-            
-            def replace_coordinator_key(match):
-                return f"{match.group(1)}{coordinator_key}{match.group(3)}"
-            
-            content = re.sub(coordinator_id_pattern, replace_coordinator_id, content)
-            content = re.sub(coordinator_username_pattern, replace_coordinator_id, content)
-            content = re.sub(coordinator_key_pattern, replace_coordinator_key, content)
+        update_env_var(id_var, client_id)
+        update_env_var(key_var, client_key)
     
     if content != original_content:
         # Create backup
-        backup_path = compose_file.with_suffix('.yaml.bak')
+        backup_path = env_file.with_suffix('.env.bak')
         if backup_path.exists():
             backup_path.unlink()  # Remove old backup
-        compose_file.rename(backup_path)
+        env_file.rename(backup_path)
         print(f"  Created backup: {backup_path.name}")
         
         # Write updated content
-        compose_file.write_text(content)
+        env_file.write_text(content)
         return True
     
     return False
@@ -506,16 +484,17 @@ def main():
     
     print("\n✓ Provisioning completed successfully!")
     
-    # Update compose.yaml with new credentials
-    compose_file = Path(__file__).parent / "compose.yaml"
-    if update_compose_file(compose_file, clients, domain_id, channel_id):
-        print("\n✓ Updated compose.yaml with new credentials")
+    # Update docker/.env with new credentials
+    repo_root = Path(__file__).parent.parent.parent
+    env_file = repo_root / "docker" / ".env"
+    if update_env_file(env_file, clients, domain_id, channel_id):
+        print(f"\n✓ Updated {env_file} with new credentials")
     else:
-        print("\n⚠ Could not update compose.yaml automatically")
+        print(f"\n⚠ Could not update {env_file} automatically")
         print("   Please update it manually with the credentials shown above")
     
     print("\nNote: Restart services to apply new credentials:")
-    print("  docker compose -f docker/compose.yaml -f examples/fl-demo/compose.yaml --env-file docker/.env restart manager proplet proplet-2 proplet-3")
+    print("  docker compose -f docker/compose.yaml -f examples/fl-demo/compose.yaml --env-file docker/.env restart manager coordinator-http proplet proplet-2 proplet-3 proxy")
 
 
 if __name__ == "__main__":
