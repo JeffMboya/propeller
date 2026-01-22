@@ -372,13 +372,6 @@ curl -X POST http://localhost:7070/fl/experiments \
 # {"experiment_id":"exp-r-...","round_id":"r-...","status":"configured"}
 ```
 
-> **CRITICAL**: The `participants` array **MUST** use SuperMQ CLIENT_IDs (UUIDs from your `docker/.env` file), **NOT** instance IDs like `"proplet-1"`, `"proplet-2"`, `"proplet-3"`.
->
-> - **Correct**: `"participants": ["3fe95a65-74f1-4ede-bf20-ef565f04cecb", "1f074cd1-4e22-4e21-92ca-e35a21d3ce29", "0d89e6d7-6410-40b5-bcda-07b0217796b8"]`
-> - **Wrong**: `"participants": ["proplet-1", "proplet-2", "proplet-3"]`
->
-> If you use instance IDs, you'll see errors like `"skipping participant: proplet not found"` in the manager logs.
-
 ### Option B: Using MQTT (via nginx)
 
 Publish a round start message to the MQTT topic. **MQTT connections require authentication** using client credentials:
@@ -405,34 +398,6 @@ mosquitto_pub -h localhost -p 1883 \
 > - MQTT connections go through nginx. The port is configured via `SMQ_NGINX_MQTT_PORT` in your `docker/.env` file (default: 1883).
 > - Use `-u` for client ID (username) and `-P` for client key (password).
 > - Get the current client ID and key from `docker/.env` (MANAGER_CLIENT_ID and MANAGER_CLIENT_KEY) or from the provisioning script output.
-> - **IMPORTANT**: The `participants` array must use SuperMQ CLIENT_IDs (UUIDs), not instance IDs.
-
-### Option C: Using Python Test Script
-
-For a complete end-to-end test, use the Python script which handles the correct API format:
-
-From the repository root:
-
-```bash
-# Option 1: Export from docker/.env first (recommended)
-export PROPLET_CLIENT_ID=$(grep '^PROPLET_CLIENT_ID=' docker/.env | grep -v '=""' | tail -1 | cut -d '=' -f2 | tr -d '"')
-export PROPLET_2_CLIENT_ID=$(grep '^PROPLET_2_CLIENT_ID=' docker/.env | cut -d '=' -f2 | tr -d '"')
-export PROPLET_3_CLIENT_ID=$(grep '^PROPLET_3_CLIENT_ID=' docker/.env | cut -d '=' -f2 | tr -d '"')
-(cd examples/fl-demo && python3 test-fl-http.py)
-
-# Option 2: Script will auto-read from docker/.env if env vars not set
-(cd examples/fl-demo && python3 test-fl-http.py)
-```
-
-> **Note**: The script automatically reads `PROPLET_CLIENT_ID`, `PROPLET_2_CLIENT_ID`, and `PROPLET_3_CLIENT_ID` from environment variables or directly from `docker/.env` if not set. These must be SuperMQ CLIENT_IDs (UUIDs), not instance IDs.
-
-This script:
-- Verifies all services are running
-- Creates an initial model if needed
-- Configures an experiment via the Manager API
-- Simulates client training and updates
-- Waits for aggregation
-- Verifies the aggregated model
 
 ## Step 8: Verify Round Execution
 
