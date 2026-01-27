@@ -9,7 +9,9 @@ ARG TIME
 WORKDIR /go/src/github.com/absmach/propeller
 COPY . .
 RUN apk update \
-    && apk add make upx\
+    && apk add make upx curl build-base \
+    && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+    && export PATH="$HOME/.cargo/bin:$PATH" \
     && make $SVC \
     && upx --best build/$SVC \
     && mv build/$SVC /exe
