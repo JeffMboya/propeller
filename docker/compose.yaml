@@ -97,6 +97,7 @@ services:
       - supermq-auth-redis-volume:/data
 
   auth:
+    platform: linux/amd64
     image: docker.io/supermq/auth:${SMQ_RELEASE_TAG}
     container_name: supermq-auth
     depends_on:
@@ -241,6 +242,7 @@ services:
       - supermq-domains-redis-volume:/data
 
   domains:
+    platform: linux/amd64
     image: docker.io/supermq/domains:${SMQ_RELEASE_TAG}
     container_name: supermq-domains
     depends_on:
@@ -478,6 +480,7 @@ services:
       - supermq-clients-redis-volume:/data
 
   clients:
+    platform: linux/amd64
     image: docker.io/supermq/clients:${SMQ_RELEASE_TAG}
     container_name: supermq-clients
     depends_on:
@@ -673,6 +676,7 @@ services:
       - supermq-channels-redis-volume:/data
 
   channels:
+    platform: linux/amd64
     image: docker.io/supermq/channels:${SMQ_RELEASE_TAG}
     container_name: supermq-channels
     depends_on:
@@ -857,6 +861,7 @@ services:
       - supermq-users-db-volume:/var/lib/postgresql/data
 
   users:
+    platform: linux/amd64
     image: docker.io/supermq/users:${SMQ_RELEASE_TAG}
     container_name: supermq-users
     depends_on:
@@ -977,6 +982,7 @@ services:
           create_host_path: true
 
   notifications:
+    platform: linux/amd64
     image: docker.io/supermq/notifications:${SMQ_RELEASE_TAG}
     container_name: supermq-notifications
     depends_on:
@@ -1044,6 +1050,7 @@ services:
       - supermq-groups-db-volume:/var/lib/postgresql/data
 
   groups:
+    platform: linux/amd64
     image: docker.io/supermq/groups:${SMQ_RELEASE_TAG}
     container_name: supermq-groups
     depends_on:
@@ -1221,6 +1228,7 @@ services:
       - supermq-base-net
 
   mqtt-adapter:
+    platform: linux/amd64
     image: docker.io/supermq/mqtt:${SMQ_RELEASE_TAG}
     container_name: supermq-mqtt
     depends_on:
@@ -1320,6 +1328,7 @@ services:
           create_host_path: true
 
   http-adapter:
+    platform: linux/amd64
     image: docker.io/supermq/http:${SMQ_RELEASE_TAG}
     container_name: supermq-http
     depends_on:
@@ -1433,6 +1442,7 @@ services:
           create_host_path: true
 
   coap-adapter:
+    platform: linux/amd64
     image: docker.io/supermq/coap:${SMQ_RELEASE_TAG}
     container_name: supermq-coap
     depends_on:
@@ -1621,8 +1631,6 @@ services:
       - supermq-base-net
     # To use a custom config.toml, uncomment the following line and ensure ./config.toml exists.
     # If you are using environment variables for configuration, leave this commented out.
-    # volumes:
-    #   - ./config.toml:/config.toml
 
   # Proplet - WebAssembly edge runtime
   # Available images:
@@ -1663,6 +1671,7 @@ services:
       COORDINATOR_URL: ${COORDINATOR_URL:-http://coordinator-http:8080}
       MODEL_REGISTRY_URL: ${MODEL_REGISTRY_URL:-http://model-registry:8081}
       DATA_STORE_URL: ${DATA_STORE_URL:-http://local-data-store:8083}
+      DYLD_LIBRARY_PATH: "/opt/homebrew/lib"
     networks:
       - supermq-base-net
     # Uncomment platform for wasi-nn image (OpenVINO requires x86_64)
@@ -1702,5 +1711,3 @@ services:
       - supermq-base-net
     # To use a custom config.toml, uncomment the following line and ensure ./config.toml exists.
     # If you are using environment variables for configuration, leave this commented out.
-    # volumes:
-    #   - ./config.toml:/config.toml
