@@ -748,7 +748,10 @@ mod tests {
         ];
 
         let mut env = HashMap::new();
-        env.insert("OPENVINO_DIR".to_string(), "/opt/intel/openvino".to_string());
+        env.insert(
+            "OPENVINO_DIR".to_string(),
+            "/opt/intel/openvino".to_string(),
+        );
 
         let req = StartRequest {
             id: "wasi-nn-task".to_string(),
