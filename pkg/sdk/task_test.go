@@ -8,6 +8,8 @@ import (
 )
 
 func TestTaskCLIArgsJSONRoundTrip(t *testing.T) {
+	t.Parallel()
+
 	task := sdk.Task{
 		ID:   "task-123",
 		Name: "wasi-nn-inference",
@@ -45,6 +47,8 @@ func TestTaskCLIArgsJSONRoundTrip(t *testing.T) {
 }
 
 func TestTaskCLIArgsOmitEmpty(t *testing.T) {
+	t.Parallel()
+
 	task := sdk.Task{
 		Name: "basic-task",
 	}
@@ -68,6 +72,8 @@ func TestTaskCLIArgsOmitEmpty(t *testing.T) {
 }
 
 func TestTaskJSONFieldNames(t *testing.T) {
+	t.Parallel()
+
 	jsonStr := `{
 		"name": "test",
 		"cli_args": ["-S", "nn"],
