@@ -1,19 +1,19 @@
 /// Filesystem example for proplet.
 ///
-/// This WASI P1 module writes a file to a preopened directory, reads it back,
+/// This WASI P2 component writes a file to a preopened directory, reads it back,
 /// and prints the result to stdout — verifying that the guest has read/write
 /// access to the host filesystem.
 ///
 /// Build:
 ///   cargo build --release
-///   (produces target/wasm32-wasip1/release/filesystem.wasm)
+///   (produces target/wasm32-wasip2/release/filesystem.wasm)
 ///
 /// Run locally with wasmtime (preopens /tmp):
-///   wasmtime --dir /tmp target/wasm32-wasip1/release/filesystem.wasm
+///   wasmtime --dir /tmp target/wasm32-wasip2/release/filesystem.wasm
 ///
 /// Run via proplet:
 ///   Set PROPLET_DIRS=/tmp on the proplet.
-///   Upload the .wasm as a WASI P1 task (no --invoke needed,
+///   Upload the .wasm as a WASI P2 task (no --invoke needed,
 ///   _start / main is called automatically).
 use std::fs;
 use std::io::{Read, Write};
