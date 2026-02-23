@@ -38,9 +38,10 @@ jobs:
           sudo dpkg -i tinygo_0.39.0_amd64.deb
 
       - name: Install wasmtools
-        run: |
-          cargo install --locked wasm-tools
+        run: cargo install --locked wasm-tools
+
+      - name: Add wasm32-wasip2 target
+        run: rustup target add wasm32-wasip2
 
       - name: Build Artifacts
-        run: |
-          make all -j $(nproc)
+        run: make all -j $(nproc)
