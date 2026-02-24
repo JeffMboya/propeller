@@ -130,7 +130,7 @@ install:
 	$(foreach f,$(wildcard $(BUILD_DIR)/*[!.wasm]),cp $(f) $(patsubst $(BUILD_DIR)/%,$(GOBIN)/propeller-%,$(f));)
 
 .PHONY: all $(SERVICES) $(RUST_SERVICES) $(EXAMPLES) docker_proplet_wasinn push_proplet_wasinn mocks
-all: $(SERVICES) $(RUST_SERVICES) $(EXAMPLES)
+all: $(SERVICES) $(RUST_SERVICES) $(EXAMPLES) http-client http-server filesystem
 
 clean:
 	rm -rf build
@@ -159,7 +159,7 @@ stop-supermq:
 	docker compose -f docker/compose.yaml --env-file docker/.env down
 
 $(EXAMPLES):
-	GOOS=js GOARCH=wasm tinygo build -buildmode=c-shared -o build/$@.wasm -target wasip1 examples/$@/$@.go
+	GOTOOLCHAIN=go1.25.5 GOOS=js GOARCH=wasm tinygo build -buildmode=c-shared -o build/$@.wasm -target wasip2 examples/$@/$@.go
 
 addition-wat:
 	@wat2wasm examples/addition-wat/addition.wat -o build/addition-wat.wasm
@@ -171,14 +171,11 @@ http-client:
 
 http-server:
 	cd examples/http-server && cargo build --release
-	wasm-tools component new \
-		examples/http-server/target/wasm32-wasip1/release/http_server.wasm \
-		--adapt wasi_snapshot_preview1=$(shell find $(HOME)/.cargo/registry/src -name "wasi_snapshot_preview1.proxy.wasm" | head -1) \
-		-o build/http-server.wasm
+	cp examples/http-server/target/wasm32-wasip2/release/http_server.wasm build/http-server.wasm
 
 filesystem:
 	cd examples/filesystem && cargo build --release
-	cp examples/filesystem/target/wasm32-wasip1/release/filesystem.wasm build/filesystem.wasm
+	cp examples/filesystem/target/wasm32-wasip2/release/filesystem.wasm build/filesystem.wasm
 
 help:
 	@echo "Usage: make <target>"

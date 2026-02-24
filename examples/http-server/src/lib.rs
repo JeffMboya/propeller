@@ -3,6 +3,13 @@
 /// Implements `wasi:http/proxy` world via raw `wit-bindgen` — no `wstd`,
 /// so it works with both `wasmtime serve` and proplet's embedded runtime.
 ///
+/// Build:
+///   cargo build --release
+///   (produces target/wasm32-wasip2/release/http_server.wasm)
+///
+/// Run locally with wasmtime:
+///   wasmtime serve -Scli --addr 127.0.0.1:9090 target/wasm32-wasip2/release/http_server.wasm
+///
 /// Routes:
 ///   GET  /          → 200 "Hello from proplet WASM HTTP server!\n"
 ///   GET  /health    → 200 "ok\n"
