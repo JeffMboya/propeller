@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -13,6 +14,8 @@ import (
 )
 
 var errStatusFilterUnsupported = errors.New("status filter is not supported")
+
+const maxMetadataBytes = 65536
 
 type taskReq struct {
 	task.Task `json:",inline"`
@@ -39,6 +42,16 @@ func (t *taskReq) validate() error {
 
 	if t.Broadcast && t.PropletID != "" {
 		return fmt.Errorf("%w: broadcast and proplet_id are mutually exclusive", pkgerrors.ErrInvalidValue)
+	}
+
+	if len(t.Metadata) > 0 {
+		b, err := json.Marshal(t.Metadata)
+		if err != nil {
+			return fmt.Errorf("invalid metadata: %w", err)
+		}
+		if len(b) > maxMetadataBytes {
+			return errors.New("metadata exceeds 64KB limit")
+		}
 	}
 
 	return nil
@@ -139,6 +152,16 @@ func (e listEntityReq) validate() error {
 	default:
 		return pkgerrors.ErrInvalidValue
 	}
+}
+
+type listTasksReq struct {
+	offset         uint64
+	limit          uint64
+	metadataFilter map[string]string
+}
+
+func (r *listTasksReq) validate() error {
+	return nil
 }
 
 type metricsReq struct {
