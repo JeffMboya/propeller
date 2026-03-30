@@ -1,12 +1,16 @@
 package api
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/absmach/propeller/pkg/cron"
 	"github.com/absmach/propeller/pkg/task"
 	apiutil "github.com/absmach/supermq/api/http/util"
 )
+
+const maxMetadataBytes = 65536
 
 type taskReq struct {
 	task.Task `json:",inline"`
@@ -29,6 +33,16 @@ func (t *taskReq) validate() error {
 
 	if t.Priority < 0 || t.Priority > 100 {
 		return fmt.Errorf("priority must be between 0 and 100, got %d", t.Priority)
+	}
+
+	if len(t.Metadata) > 0 {
+		b, err := json.Marshal(t.Metadata)
+		if err != nil {
+			return fmt.Errorf("invalid metadata: %w", err)
+		}
+		if len(b) > maxMetadataBytes {
+			return errors.New("metadata exceeds 64KB limit")
+		}
 	}
 
 	return nil
@@ -97,6 +111,16 @@ type listEntityReq struct {
 }
 
 func (e *listEntityReq) validate() error {
+	return nil
+}
+
+type listTasksReq struct {
+	offset         uint64
+	limit          uint64
+	metadataFilter map[string]string
+}
+
+func (r *listTasksReq) validate() error {
 	return nil
 }
 
