@@ -108,6 +108,14 @@ type SDK interface {
 	//  _ := sdk.StopJob("b1d10738-c5d7-4ff1-8f4d-b9328ce6f040")
 	StopJob(jobID string) error
 
+	// ListProplets lists proplets with optional status filter.
+	// Status can be "active", "inactive", or "" (all).
+	//
+	// example:
+	//  page, _ := sdk.ListProplets(0, 10, "")
+	//  page, _ := sdk.ListProplets(0, 10, "active")
+	ListProplets(offset uint64, limit uint64, status string) (PropletPage, error)
+
 	// DeleteProplet deletes a proplet by id.
 	//
 	// example:
