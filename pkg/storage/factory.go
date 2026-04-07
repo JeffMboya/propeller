@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/absmach/propeller/pkg/job"
 	"github.com/absmach/propeller/pkg/proplet"
@@ -189,6 +190,10 @@ func (a *postgresPropletAdapter) List(ctx context.Context, offset, limit uint64)
 	return a.repo.List(ctx, offset, limit)
 }
 
+func (a *postgresPropletAdapter) ListByAlive(ctx context.Context, offset, limit uint64, alive bool, since time.Time) ([]proplet.Proplet, uint64, error) {
+	return a.repo.ListByAlive(ctx, offset, limit, alive, since)
+}
+
 func (a *postgresPropletAdapter) Delete(ctx context.Context, id string) error {
 	return a.repo.Delete(ctx, id)
 }
@@ -332,6 +337,10 @@ func (a *sqlitePropletAdapter) List(ctx context.Context, offset, limit uint64) (
 	return a.repo.List(ctx, offset, limit)
 }
 
+func (a *sqlitePropletAdapter) ListByAlive(ctx context.Context, offset, limit uint64, alive bool, since time.Time) ([]proplet.Proplet, uint64, error) {
+	return a.repo.ListByAlive(ctx, offset, limit, alive, since)
+}
+
 func (a *sqlitePropletAdapter) Delete(ctx context.Context, id string) error {
 	return a.repo.Delete(ctx, id)
 }
@@ -473,6 +482,10 @@ func (a *badgerPropletAdapter) Update(ctx context.Context, p proplet.Proplet) er
 
 func (a *badgerPropletAdapter) List(ctx context.Context, offset, limit uint64) ([]proplet.Proplet, uint64, error) {
 	return a.repo.List(ctx, offset, limit)
+}
+
+func (a *badgerPropletAdapter) ListByAlive(ctx context.Context, offset, limit uint64, alive bool, since time.Time) ([]proplet.Proplet, uint64, error) {
+	return a.repo.ListByAlive(ctx, offset, limit, alive, since)
 }
 
 func (a *badgerPropletAdapter) Delete(ctx context.Context, id string) error {
