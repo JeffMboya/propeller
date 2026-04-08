@@ -5,12 +5,14 @@ import (
 
 	"github.com/absmach/propeller/manager"
 	"github.com/absmach/propeller/pkg/proplet"
+	"github.com/absmach/propeller/pkg/sdf"
 	"github.com/absmach/propeller/pkg/task"
 	"github.com/absmach/supermq"
 )
 
 var (
 	_ supermq.Response = (*propletResponse)(nil)
+	_ supermq.Response = (*propletSDFResponse)(nil)
 	_ supermq.Response = (*listpropletResponse)(nil)
 	_ supermq.Response = (*taskResponse)(nil)
 	_ supermq.Response = (*listTaskResponse)(nil)
@@ -53,6 +55,22 @@ func (w propletResponse) Headers() map[string]string {
 
 func (w propletResponse) Empty() bool {
 	return w.deleted
+}
+
+type propletSDFResponse struct {
+	sdf.Document
+}
+
+func (r propletSDFResponse) Code() int {
+	return http.StatusOK
+}
+
+func (r propletSDFResponse) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (r propletSDFResponse) Empty() bool {
+	return false
 }
 
 type listpropletResponse struct {

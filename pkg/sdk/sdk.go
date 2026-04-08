@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/absmach/propeller/pkg/sdf"
 )
 
 const CTJSON string = "application/json"
@@ -105,6 +107,13 @@ type SDK interface {
 	// example:
 	//  _ := sdk.StopJob("b1d10738-c5d7-4ff1-8f4d-b9328ce6f040")
 	StopJob(jobID string) error
+
+	// GetPropletSDF returns the SDF description of a proplet.
+	//
+	// example:
+	//  doc, _ := sdk.GetPropletSDF("b1d10738-c5d7-4ff1-8f4d-b9328ce6f040")
+	//  fmt.Println(doc)
+	GetPropletSDF(id string) (sdf.Document, error)
 
 	// DeleteProplet deletes a proplet by id.
 	//
