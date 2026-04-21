@@ -339,8 +339,8 @@ func decodeListEntityReq(statusFilter listEntityStatus) kithttp.DecodeRequestFun
 }
 
 const (
-	metadataQueryPrefix = "metadata["
-	metadataQuerySuffix = "]"
+	metadataQueryPrefix   = "metadata["
+	metadataQuerySuffix   = "]"
 	maxMetadataFilterKeys = 20
 )
 
