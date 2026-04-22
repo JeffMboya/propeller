@@ -15,7 +15,10 @@ import (
 
 var errStatusFilterUnsupported = errors.New("status filter is not supported")
 
-const maxMetadataBytes = 1048576
+const (
+	maxMetadataBytes = 1048576 // 1MB
+	maxLimitSize     = 100
+)
 
 type taskReq struct {
 	task.Task `json:",inline"`
@@ -161,6 +164,10 @@ type listTasksReq struct {
 }
 
 func (r *listTasksReq) validate() error {
+	if r.limit > maxLimitSize || r.limit < 1 {
+		return apiutil.ErrLimitSize
+	}
+
 	return nil
 }
 
