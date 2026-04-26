@@ -5,9 +5,14 @@ import (
 
 	"github.com/absmach/propeller/pkg/proplet"
 	"github.com/absmach/propeller/pkg/sdf"
-	"github.com/absmach/propeller/pkg/sdk"
 	"github.com/absmach/propeller/pkg/task"
 )
+
+type PageMetadata struct {
+	Offset   uint64        `json:"offset"`
+	Limit    uint64        `json:"limit"`
+	Metadata task.Metadata `json:"metadata,omitempty"`
+}
 
 type Service interface {
 	GetProplet(ctx context.Context, propletID string) (proplet.Proplet, error)
@@ -24,7 +29,7 @@ type Service interface {
 	ListJobs(ctx context.Context, offset, limit uint64, status string) (JobPage, error)
 	StartJob(ctx context.Context, jobID string) error
 	StopJob(ctx context.Context, jobID string) error
-	ListTasks(ctx context.Context, pm sdk.PageMetadata) (task.TaskPage, error)
+	ListTasks(ctx context.Context, pm PageMetadata) (task.TaskPage, error)
 	UpdateTask(ctx context.Context, task task.Task) (task.Task, error)
 	DeleteTask(ctx context.Context, taskID string) error
 	StartTask(ctx context.Context, taskID string) error

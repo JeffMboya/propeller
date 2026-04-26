@@ -10,7 +10,6 @@ import (
 	"github.com/absmach/propeller/manager"
 	"github.com/absmach/propeller/pkg/proplet"
 	"github.com/absmach/propeller/pkg/sdf"
-	"github.com/absmach/propeller/pkg/sdk"
 	"github.com/absmach/propeller/pkg/task"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -1357,7 +1356,7 @@ func (_c *MockService_ListProplets_Call) RunAndReturn(run func(ctx context.Conte
 }
 
 // ListTasks provides a mock function for the type MockService
-func (_mock *MockService) ListTasks(ctx context.Context, pm sdk.PageMetadata) (task.TaskPage, error) {
+func (_mock *MockService) ListTasks(ctx context.Context, pm manager.PageMetadata) (task.TaskPage, error) {
 	ret := _mock.Called(ctx, pm)
 
 	if len(ret) == 0 {
@@ -1366,15 +1365,15 @@ func (_mock *MockService) ListTasks(ctx context.Context, pm sdk.PageMetadata) (t
 
 	var r0 task.TaskPage
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, sdk.PageMetadata) (task.TaskPage, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, manager.PageMetadata) (task.TaskPage, error)); ok {
 		return returnFunc(ctx, pm)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, sdk.PageMetadata) task.TaskPage); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, manager.PageMetadata) task.TaskPage); ok {
 		r0 = returnFunc(ctx, pm)
 	} else {
 		r0 = ret.Get(0).(task.TaskPage)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, sdk.PageMetadata) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, manager.PageMetadata) error); ok {
 		r1 = returnFunc(ctx, pm)
 	} else {
 		r1 = ret.Error(1)
@@ -1389,20 +1388,20 @@ type MockService_ListTasks_Call struct {
 
 // ListTasks is a helper method to define mock.On call
 //   - ctx context.Context
-//   - pm sdk.PageMetadata
+//   - pm manager.PageMetadata
 func (_e *MockService_Expecter) ListTasks(ctx interface{}, pm interface{}) *MockService_ListTasks_Call {
 	return &MockService_ListTasks_Call{Call: _e.mock.On("ListTasks", ctx, pm)}
 }
 
-func (_c *MockService_ListTasks_Call) Run(run func(ctx context.Context, pm sdk.PageMetadata)) *MockService_ListTasks_Call {
+func (_c *MockService_ListTasks_Call) Run(run func(ctx context.Context, pm manager.PageMetadata)) *MockService_ListTasks_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 sdk.PageMetadata
+		var arg1 manager.PageMetadata
 		if args[1] != nil {
-			arg1 = args[1].(sdk.PageMetadata)
+			arg1 = args[1].(manager.PageMetadata)
 		}
 		run(
 			arg0,
@@ -1417,7 +1416,7 @@ func (_c *MockService_ListTasks_Call) Return(taskPage task.TaskPage, err error) 
 	return _c
 }
 
-func (_c *MockService_ListTasks_Call) RunAndReturn(run func(ctx context.Context, pm sdk.PageMetadata) (task.TaskPage, error)) *MockService_ListTasks_Call {
+func (_c *MockService_ListTasks_Call) RunAndReturn(run func(ctx context.Context, pm manager.PageMetadata) (task.TaskPage, error)) *MockService_ListTasks_Call {
 	_c.Call.Return(run)
 	return _c
 }
