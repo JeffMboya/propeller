@@ -1,9 +1,11 @@
 package storage
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"math"
+	"slices"
 	"sync"
 	"time"
 
@@ -240,6 +242,9 @@ func (r *memoryTaskRepo) listByMetadata(ctx context.Context, filter task.Metadat
 		}
 		tasks = append(tasks, t)
 	}
+	slices.SortFunc(tasks, func(a, b task.Task) int {
+		return cmp.Compare(a.ID, b.ID)
+	})
 
 	total := uint64(len(tasks))
 	if offset >= total {
