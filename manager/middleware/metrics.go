@@ -6,8 +6,8 @@ import (
 
 	"github.com/absmach/propeller/manager"
 	"github.com/absmach/propeller/pkg/proplet"
-	"github.com/absmach/propeller/pkg/task"
 	"github.com/absmach/propeller/pkg/sdf"
+	"github.com/absmach/propeller/pkg/task"
 	"github.com/go-kit/kit/metrics"
 )
 
