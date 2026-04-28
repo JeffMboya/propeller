@@ -232,7 +232,7 @@ func (sdk *propSDK) ListJobs(offset, limit uint64, status string) (JobPage, erro
 		params = append(params, fmt.Sprintf("limit=%d", limit))
 	}
 	if status != "" {
-		params = append(params, "status="+url.QueryEscape(status))
+		params = append(params, "status="+neturl.QueryEscape(status))
 	}
 	query := ""
 	if len(params) > 0 {
