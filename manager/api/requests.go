@@ -1,10 +1,12 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
 	apiutil "github.com/absmach/magistrala/api/http/util"
+	"github.com/absmach/propeller/pkg/api"
 	"github.com/absmach/propeller/pkg/cron"
 	pkgerrors "github.com/absmach/propeller/pkg/errors"
 	"github.com/absmach/propeller/pkg/proplet"
@@ -13,6 +15,8 @@ import (
 )
 
 var errStatusFilterUnsupported = errors.New("status filter is not supported")
+
+const maxMetadataBytes = 1048576 // 1MB
 
 type taskReq struct {
 	task.Task `json:",inline"`
@@ -39,6 +43,16 @@ func (t *taskReq) validate() error {
 
 	if t.Broadcast && t.PropletID != "" {
 		return fmt.Errorf("%w: broadcast and proplet_id are mutually exclusive", pkgerrors.ErrInvalidValue)
+	}
+
+	if len(t.Metadata) > 0 {
+		b, err := json.Marshal(t.Metadata)
+		if err != nil {
+			return fmt.Errorf("invalid metadata: %w", err)
+		}
+		if len(b) > maxMetadataBytes {
+			return errors.New("metadata exceeds 1MB limit")
+		}
 	}
 
 	return nil
@@ -139,6 +153,20 @@ func (e listEntityReq) validate() error {
 	default:
 		return pkgerrors.ErrInvalidValue
 	}
+}
+
+type listTasksReq struct {
+	offset   uint64
+	limit    uint64
+	metadata task.Metadata
+}
+
+func (r listTasksReq) validate() error {
+	if r.limit > api.MaxLimitSize || r.limit < 1 {
+		return apiutil.ErrLimitSize
+	}
+
+	return nil
 }
 
 type metricsReq struct {
