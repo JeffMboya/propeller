@@ -28,10 +28,11 @@ pub struct TeeWasmRuntime {
 
 impl TeeWasmRuntime {
     pub async fn new(config: &PropletConfig) -> Result<Self> {
-        let (aa_config, _) = attestation_agent::config::Config::from_file(config.aa_config_path.clone())
-            .context("Failed to load attestation agent config")?;
-        let mut agent = AttestationAgent::new(aa_config)
-            .context("Failed to create attestation agent")?;
+        let (aa_config, _) =
+            attestation_agent::config::Config::from_file(config.aa_config_path.clone())
+                .context("Failed to load attestation agent config")?;
+        let mut agent =
+            AttestationAgent::new(aa_config).context("Failed to create attestation agent")?;
         agent.init().await?;
 
         if config.tee_enabled {
