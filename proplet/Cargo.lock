@@ -2629,7 +2629,7 @@ dependencies = [
  "kbc",
  "loopdev",
  "nix",
- "oci-client 0.16.1 (git+https://github.com/oras-project/rust-oci-client?rev=83092a67ebcaeed832eae090895a1c178d867344)",
+ "oci-client 0.16.1",
  "oci-spec 0.9.0",
  "ocicrypt-rs",
  "protos",
@@ -3412,6 +3412,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_threads"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c7398b9c8b70908f6371f47ed36737907c87c52af34c268fed0bf0ceb92ead9"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "oauth2"
 version = "5.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3479,32 +3488,6 @@ dependencies = [
  "olpc-cjson",
  "regex",
  "reqwest 0.12.28",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "unicase",
-]
-
-[[package]]
-name = "oci-client"
-version = "0.16.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b7f8deaffcd3b0e3baf93dddcab3d18b91d46dc37d38a8b170089b234de5bb3"
-dependencies = [
- "bytes",
- "chrono",
- "futures-util",
- "http",
- "http-auth",
- "jsonwebtoken",
- "lazy_static",
- "oci-spec 0.9.0",
- "olpc-cjson",
- "regex",
- "reqwest 0.13.2",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -4163,7 +4146,7 @@ dependencies = [
  "image-rs",
  "kbs_protocol",
  "libc",
- "oci-client 0.16.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oci-client 0.16.1",
  "oci-spec 0.9.0",
  "reqwest 0.13.2",
  "resource_uri",

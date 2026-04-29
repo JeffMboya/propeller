@@ -28,7 +28,9 @@ pub struct TeeWasmRuntime {
 
 impl TeeWasmRuntime {
     pub async fn new(config: &PropletConfig) -> Result<Self> {
-        let mut agent = AttestationAgent::new(config.aa_config_path.as_deref())
+        let (aa_config, _) = attestation_agent::config::Config::from_file(config.aa_config_path.clone())
+            .context("Failed to load attestation agent config")?;
+        let mut agent = AttestationAgent::new(aa_config)
             .context("Failed to create attestation agent")?;
         agent.init().await?;
 
@@ -103,7 +105,7 @@ impl TeeWasmRuntime {
             client_config,
         )?;
 
-        let (manifest, _digest, config) = pull_client
+        let (manifest, _digest, config, _list_digest) = pull_client
             .pull_manifest()
             .await
             .context("Failed to pull manifest")?;
