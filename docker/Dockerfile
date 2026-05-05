@@ -14,7 +14,7 @@ ARG TIME
 WORKDIR /go/src/github.com/absmach/propeller
 COPY . .
 RUN apk update \
-    && apk add make \
+    && apk add make gcc musl-dev \
     && _goarm="${GOARM:-${TARGETVARIANT#v}}" \
     && make $SVC GOARCH=${GOARCH} ${_goarm:+GOARM=${_goarm}} \
     && mv build/$SVC /exe
