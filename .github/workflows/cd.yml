@@ -62,7 +62,7 @@ jobs:
           # distroless/cc-debian12 is used for amd64/arm64; riscv64 falls back
           # to debian:sid-slim which carries glibc + libgcc for CGO binaries.
           platforms: linux/amd64,linux/arm64,linux/riscv64
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           build-args: |
             SVC=${{ matrix.svc }}
             VERSION=${{ steps.meta.outputs.version }}
@@ -117,7 +117,7 @@ jobs:
           # cross-compiles on the host (amd64) rather than running under QEMU.
           # wasmtime releases provide amd64 and arm64 Linux binaries.
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           build-args: |
             VERSION=${{ steps.meta.outputs.version }}
             COMMIT=${{ steps.meta.outputs.commit }}
@@ -159,7 +159,7 @@ jobs:
           file: docker/Dockerfile.proplet-wasinn
           # OpenVINO backend is x86-only
           platforms: linux/amd64
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ${{ env.IMAGE_PREFIX }}/proplet-wasi-nn:latest
             ${{ env.IMAGE_PREFIX }}/proplet-wasi-nn:${{ github.sha }}
