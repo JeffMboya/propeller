@@ -87,7 +87,7 @@ endef
 
 .DEFAULT_GOAL := all
 
-manager: CGO_ENABLED := 1
+manager: CGO_ENABLED := $(if $(filter riscv64,$(GOARCH)),0,1)
 
 $(SERVICES):
 	$(call compile_service,$(@))
