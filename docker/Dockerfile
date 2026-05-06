@@ -19,7 +19,19 @@ RUN apt-get update \
     && make $SVC GOARCH=${GOARCH} ${_goarm:+GOARM=${_goarm}} \
     && mv build/$SVC /exe
 
-FROM gcr.io/distroless/cc-debian12
+# distroless/cc-debian12 has no riscv64 manifest; fall back to debian:sid-slim
+# for that platform, which provides glibc and libgcc required by CGO binaries.
+FROM gcr.io/distroless/cc-debian12 AS final-amd64
+FROM gcr.io/distroless/cc-debian12 AS final-arm64
+FROM gcr.io/distroless/cc-debian12 AS final-arm
+FROM gcr.io/distroless/cc-debian12 AS final-ppc64le
+FROM gcr.io/distroless/cc-debian12 AS final-s390x
+FROM debian:sid-slim AS final-riscv64
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgcc-s1 \
+    && rm -rf /var/lib/apt/lists/*
+
+FROM final-${TARGETARCH}
 LABEL org.opencontainers.image.source=https://github.com/absmach/propeller
 LABEL org.opencontainers.image.licenses=Apache-2.0
 

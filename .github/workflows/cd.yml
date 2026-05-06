@@ -55,8 +55,8 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile
-          # Docker images only make sense on Linux; riscv64 support in the
-          # alpine builder image and multi-arch manifests is available.
+          # distroless/cc-debian12 is used for amd64/arm64; riscv64 falls back
+          # to debian:sid-slim which carries glibc + libgcc for CGO binaries.
           platforms: linux/amd64,linux/arm64,linux/riscv64
           push: true
           build-args: |
