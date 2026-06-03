@@ -9,6 +9,7 @@ mod runtime;
 mod service;
 mod task_handler;
 mod tee_detection;
+mod telemetry;
 mod types;
 
 use crate::config::PropletConfig;
@@ -23,7 +24,6 @@ use anyhow::Result;
 use std::sync::Arc;
 use tokio::sync::mpsc;
 use tracing::{debug, info, warn, Level};
-use tracing_subscriber::FmtSubscriber;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -39,7 +39,8 @@ async fn main() -> Result<()> {
         _ => Level::INFO,
     };
 
-    let subscriber = FmtSubscriber::builder()
+    let subscriber = tracing_subscriber::fmt()
+        .json()
         .with_max_level(log_level)
         .with_target(false)
         .with_thread_ids(false)
@@ -48,8 +49,6 @@ async fn main() -> Result<()> {
         .finish();
 
     tracing::subscriber::set_global_default(subscriber)?;
-
-    debug!("Proplet configuration: {:?}", config);
 
     info!("Starting Proplet (Rust) - Client ID: {}", config.client_id);
 
@@ -106,6 +105,19 @@ async fn main() -> Result<()> {
         None
     };
 
+    let proplet_metrics = Arc::new(
+        telemetry::PropletMetrics::new()
+            .map_err(|e| anyhow::anyhow!("Failed to initialize metrics: {e}"))?,
+    );
+
+    if config.metrics_enabled {
+        let metrics_clone = proplet_metrics.clone();
+        let metrics_port = config.metrics_port;
+        tokio::spawn(async move {
+            telemetry::serve_telemetry(metrics_port, metrics_clone).await;
+        });
+    }
+
     let service = if config.tee_enabled {
         match TeeWasmRuntime::new(&config).await {
             Ok(tee_runtime) => {
@@ -116,6 +128,7 @@ async fn main() -> Result<()> {
                     runtime,
                     Arc::new(tee_runtime),
                     plugin_registry,
+                    proplet_metrics,
                 ))
             }
             Err(e) => {
@@ -132,6 +145,7 @@ async fn main() -> Result<()> {
             pubsub,
             runtime,
             plugin_registry,
+            proplet_metrics,
         ))
     };
 
